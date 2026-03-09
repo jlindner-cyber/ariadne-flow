@@ -4,6 +4,7 @@ import { createServer } from 'http';
 import { resolve } from 'path';
 import { initParser } from './parser/index.ts';
 import { watchFile, stopWatching } from './watcher.ts';
+import { runLinter } from './linter.ts';
 import apiRouter from './api.ts';
 
 const app = express();
@@ -49,10 +50,14 @@ wss.on('connection', (ws: WebSocket) => {
         const graph = await watchFile(filePath, (updatedGraph) => {
           if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({ type: 'update', graph: updatedGraph }));
+            const lintIssues = runLinter(filePath);
+            ws.send(JSON.stringify({ type: 'lint', issues: lintIssues }));
           }
         });
 
         ws.send(JSON.stringify({ type: 'initial', graph, filePath }));
+        const lintIssues = runLinter(filePath);
+        ws.send(JSON.stringify({ type: 'lint', issues: lintIssues }));
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error';
         ws.send(JSON.stringify({ type: 'error', message }));
