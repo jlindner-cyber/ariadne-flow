@@ -3,6 +3,7 @@ import '@xyflow/react/dist/style.css';
 import './App.css';
 import FlowCanvas from './components/FlowCanvas';
 import AITerminal from './components/AITerminal';
+import SettingsPanel from './components/SettingsPanel';
 import { useWebSocket } from './hooks/useWebSocket';
 import type { FlowNode, LintIssue } from './types';
 
@@ -11,6 +12,7 @@ function App() {
   const [pathInput, setPathInput] = useState('');
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null);
   const [terminalVisible, setTerminalVisible] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleAnalyze = useCallback(() => {
     setTerminalVisible(true);
@@ -130,6 +132,22 @@ function App() {
         >
           Analyze with AI
         </button>
+        <button
+          onClick={() => setSettingsOpen(true)}
+          style={{
+            background: '#313244',
+            border: 'none',
+            borderRadius: 4,
+            color: '#cdd6f4',
+            padding: '4px 8px',
+            cursor: 'pointer',
+            fontSize: 16,
+            lineHeight: 1,
+          }}
+          title="Settings"
+        >
+          &#9881;
+        </button>
         <span
           style={{
             width: 10,
@@ -215,6 +233,7 @@ function App() {
           )}
         </div>
       )}
+      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
     </div>
   );
 }

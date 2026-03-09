@@ -1,7 +1,6 @@
 import * as pty from 'node-pty';
-import { readFileSync } from 'fs';
 import { homedir } from 'os';
-import { join } from 'path';
+import { loadSettings } from './settings';
 
 interface TerminalContext {
   filePath: string;
@@ -11,28 +10,11 @@ interface TerminalContext {
   lintIssues?: Array<{ message: string; line: number; severity: string }>;
 }
 
-interface Settings {
-  ai?: {
-    command?: string;
-    personaPrompt?: string;
-  };
-}
-
 interface TerminalSession {
   ptyProcess: pty.IPty;
 }
 
 let session: TerminalSession | null = null;
-
-function loadSettings(): Settings {
-  const settingsPath = join(homedir(), '.ariadne-flow', 'settings.json');
-  try {
-    const raw = readFileSync(settingsPath, 'utf-8');
-    return JSON.parse(raw) as Settings;
-  } catch {
-    return {};
-  }
-}
 
 function buildContextPrompt(context: TerminalContext, personaPrompt: string): string {
   const parts: string[] = [personaPrompt, ''];
@@ -66,10 +48,8 @@ export function createTerminalSession(
   destroyTerminalSession();
 
   const settings = loadSettings();
-  const command = settings.ai?.command ?? 'claude';
-  const personaPrompt =
-    settings.ai?.personaPrompt ??
-    'You are a senior code reviewer. Be direct. Focus on bugs, security issues, and performance problems.';
+  const command = settings.ai.command;
+  const personaPrompt = settings.ai.personaPrompt;
 
   const contextPrompt = buildContextPrompt(context, personaPrompt);
 

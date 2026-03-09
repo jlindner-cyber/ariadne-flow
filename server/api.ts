@@ -1,8 +1,19 @@
 import { Router } from 'express';
 import { access } from 'fs/promises';
 import { resolve } from 'path';
+import { loadSettings, saveSettings } from './settings';
 
 const router = Router();
+
+router.get('/settings', (_req, res) => {
+  const settings = loadSettings();
+  res.json(settings);
+});
+
+router.put('/settings', (req, res) => {
+  saveSettings(req.body);
+  res.json({ status: 'saved' });
+});
 
 router.post('/open', async (req, res) => {
   const { filePath } = req.body as { filePath?: string };

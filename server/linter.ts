@@ -1,7 +1,6 @@
 import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
-import { extname, join } from 'path';
-import { homedir } from 'os';
+import { extname } from 'path';
+import { loadSettings } from './settings';
 
 export interface LintIssue {
   line: number;
@@ -26,17 +25,6 @@ const DEFAULT_COMMANDS: Record<LangKey, string> = {
   javascript: 'eslint --format=json "{file}"',
   typescript: 'eslint --format=json "{file}"',
 };
-
-function loadSettings(): Record<string, string> | null {
-  try {
-    const settingsPath = join(homedir(), '.ariadne-flow', 'settings.json');
-    const raw = readFileSync(settingsPath, 'utf-8');
-    const settings = JSON.parse(raw);
-    return settings.linters ?? null;
-  } catch {
-    return null;
-  }
-}
 
 interface RuffDiagnostic {
   location: { row: number; column: number };
@@ -85,8 +73,8 @@ export function runLinter(filePath: string): LintIssue[] {
   const language = EXT_TO_LANGUAGE[ext];
   if (!language) return [];
 
-  const customLinters = loadSettings();
-  const command = customLinters?.[language] ?? DEFAULT_COMMANDS[language];
+  const settings = loadSettings();
+  const command = settings.linters[language] ?? DEFAULT_COMMANDS[language];
   const resolvedCommand = command.replace('{file}', filePath);
 
   let stdout: string;
