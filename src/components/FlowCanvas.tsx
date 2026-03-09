@@ -87,8 +87,8 @@ function layoutNodes(
 
 export default function FlowCanvas({ graph, lintIssues, onNodeSelect }: FlowCanvasProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const onToggleExpand = useCallback((id: string) => {
     setExpandedIds((prev) => {
