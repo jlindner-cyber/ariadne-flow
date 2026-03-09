@@ -6,6 +6,12 @@ import { initParser } from './parser/index.ts';
 import { watchFile, stopWatching } from './watcher.ts';
 import { runLinter } from './linter.ts';
 import apiRouter from './api.ts';
+import {
+  createTerminalSession,
+  writeToTerminal,
+  resizeTerminal,
+  destroyTerminalSession,
+} from './terminal.ts';
 
 const app = express();
 app.use(express.json());
@@ -21,7 +27,33 @@ interface OpenMessage {
   filePath: string;
 }
 
-type ClientMessage = OpenMessage;
+interface TerminalOpenMessage {
+  type: 'terminal:open';
+  context: {
+    filePath: string;
+    selectedCode?: string;
+    startLine?: number;
+    endLine?: number;
+    lintIssues?: Array<{ message: string; line: number; severity: string }>;
+  };
+}
+
+interface TerminalInputMessage {
+  type: 'terminal:input';
+  data: string;
+}
+
+interface TerminalResizeMessage {
+  type: 'terminal:resize';
+  cols: number;
+  rows: number;
+}
+
+type ClientMessage =
+  | OpenMessage
+  | TerminalOpenMessage
+  | TerminalInputMessage
+  | TerminalResizeMessage;
 
 wss.on('connection', (ws: WebSocket) => {
   console.log('Client connected');
@@ -62,12 +94,23 @@ wss.on('connection', (ws: WebSocket) => {
         const message = err instanceof Error ? err.message : 'Unknown error';
         ws.send(JSON.stringify({ type: 'error', message }));
       }
+    } else if (msg.type === 'terminal:open') {
+      createTerminalSession(msg.context, (data) => {
+        if (ws.readyState === ws.OPEN) {
+          ws.send(JSON.stringify({ type: 'terminal:data', data }));
+        }
+      });
+    } else if (msg.type === 'terminal:input') {
+      writeToTerminal(msg.data);
+    } else if (msg.type === 'terminal:resize') {
+      resizeTerminal(msg.cols, msg.rows);
     }
   });
 
   ws.on('close', () => {
     console.log('Client disconnected');
     stopWatching();
+    destroyTerminalSession();
   });
 });
 
