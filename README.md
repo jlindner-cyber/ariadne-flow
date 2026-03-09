@@ -1,73 +1,106 @@
-# React + TypeScript + Vite
+# Ariadne Flow
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Visual code flow debugger with zoomable nodes, live updates, and AI-powered analysis**
 
-Currently, two official plugins are available:
+Ariadne Flow visualizes any code file as an interactive node graph. Nodes represent functions, classes, loops, and conditionals — click to expand and see internal control flow. The graph live-updates as you edit the file, linter warnings overlay directly on nodes, and an embedded AI terminal provides conversational debugging without leaving the tool.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Zoomable node graph** — pan, zoom, expand/collapse code structures
+- **Language-agnostic** — powered by Tree-sitter WASM grammars (27+ languages)
+- **Live file watching** — graph updates automatically as you save
+- **Linter integration** — errors and warnings overlay directly on nodes
+- **AI terminal** — embedded CLI with a custom persona prompt for conversational debugging
+- **Configurable settings** — AI command, persona, linters, and debounce timing via `~/.ariadne-flow/settings.json`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Quick Start
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone <repo-url>
+cd ariadne-flow
+npm install
+npm run dev
+# Open http://localhost:5173, enter a file path
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Or with the CLI:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm link
+ariadne-flow path/to/file.py
 ```
+
+## Supported Languages
+
+Ariadne Flow supports 27+ languages via Tree-sitter WASM grammars. Grammars need to be placed in `~/.ariadne-flow/grammars/`.
+
+Most common supported languages:
+
+- Python
+- JavaScript
+- TypeScript
+- Rust
+- Go
+- Ruby
+- Java
+- C
+- C++
+- C#
+- Swift
+- Kotlin
+- Scala
+- PHP
+- Bash
+- Lua
+- Haskell
+- Elixir
+- Zig
+- OCaml
+
+## Settings
+
+Ariadne Flow reads configuration from `~/.ariadne-flow/settings.json`. The file is created with defaults on first run.
+
+```json
+{
+  "ai": {
+    "command": "claude",
+    "personaPrompt": "You are a senior code reviewer. Be direct. Focus on bugs, security issues, and performance problems."
+  },
+  "linters": {
+    "python": "ruff check --output-format=json \"{file}\"",
+    "javascript": "eslint --format=json \"{file}\"",
+    "typescript": "eslint --format=json \"{file}\""
+  },
+  "fileWatch": {
+    "debounceMs": 300
+  }
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `ai.command` | CLI command to spawn for the AI terminal (e.g., `claude`, `aichat`) |
+| `ai.personaPrompt` | System prompt injected into the AI session |
+| `linters.<lang>` | Shell command to run for linting. `{file}` is replaced with the file path. |
+| `fileWatch.debounceMs` | Milliseconds to wait after a file change before re-parsing |
+
+## Adding Grammars
+
+To add support for a new language:
+
+1. Obtain or build the Tree-sitter WASM grammar file (e.g., `tree-sitter-ruby.wasm`). Pre-built WASM files are available from [tree-sitter/tree-sitter](https://github.com/tree-sitter/tree-sitter) or individual grammar repos.
+2. Place the `.wasm` file in `~/.ariadne-flow/grammars/`.
+3. The file must be named `tree-sitter-<language>.wasm` (e.g., `tree-sitter-ruby.wasm`).
+4. Restart Ariadne Flow. The language will be detected automatically.
+
+## Tech Stack
+
+- **Frontend**: React + TypeScript, React Flow (`@xyflow/react`), xterm.js
+- **Backend**: Express, WebSocket (`ws`), node-pty, chokidar
+- **Parsing**: web-tree-sitter (WASM)
+- **Build**: Vite, tsx
+
+## License
+
+MIT

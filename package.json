@@ -1,7 +1,11 @@
 {
   "name": "ariadne-flow",
+  "version": "0.1.0",
+  "description": "Visual code flow debugger with zoomable nodes, live updates, and AI-powered analysis",
+  "author": "",
+  "license": "MIT",
+  "keywords": ["code-visualization", "debugger", "tree-sitter", "react-flow", "ast"],
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "bin": {
     "ariadne-flow": "./bin/ariadne-flow.ts"
